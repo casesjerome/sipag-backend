@@ -14,10 +14,13 @@ app.use(
 
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "DELETE");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, access-control-allow-methods"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, access-control-allow-methods"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, OPTIONS"
   );
   next();
 });
@@ -27,15 +30,132 @@ mongoose.connect("mongodb://localhost:27017/notesDB", {
   useNewUrlParser: true,
 });
 
+const userSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+});
+
 const notesSchema = new mongoose.Schema({
   title: String,
   content: String,
+  user: userSchema
 });
 
+const User = new mongoose.model("User", userSchema);
 const Note = new mongoose.model("Note", notesSchema);
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/form.html");
+});
+
+//Targeting all users
+app
+  .route("/users")
+  .get((req, res) => {
+    User.find({}, (err, foundUsers) => {
+      if (!err) {
+        res.send(foundUsers);
+      } else {
+        res.send(err);
+      }
+    });
+  })
+  .post(async (req, res) => {
+    const user = new User({
+      username: req.body.username,
+      password: req.body.password,
+    });
+
+    await user.save((err) => {
+      if (!err) {
+        res.send("Successfully registered");
+      } else {
+        res.send(err);
+      }
+    });
+  })
+  .delete((req, res) => {
+    User.deleteMany({}, (err) => {
+      if (!err) {
+        res.send("Successfully deleted all users");
+      } else {
+        res.send(err);
+      }
+    });
+  });
+
+//Requests targeting a specific user
+app
+.route("/user/:userId")
+.get((req, res) => {
+  User.findOne(
+    {
+      _id: req.params.userId,
+    },
+    (err, foundUsers) => {
+      if (!err) {
+        if (foundUsers) {
+          res.send(foundUsers);
+        } else {
+          res.send("No such user");
+        }
+      } else {
+        res.send(err);
+      }
+    }
+  );
+})
+.put((req, res) => {
+  User.update(
+    {
+      _id: req.params.userId,
+    },
+    {
+      username: req.body.username,
+      password: req.body.password,
+    },
+    {
+      overwrite: true,
+    },
+    (err) => {
+      if (!err) {
+        res.send("User updated");
+      } else {
+        res.send(err);
+      }
+    }
+  );
+})
+.patch((req, res) => {
+  User.update(
+    {
+      _id: req.params.userId,
+    },
+    {
+      $set: req.body,
+    },
+    (err) => {
+      if (!err) {
+        res.send("User updated");
+      } else {
+        res.send(err);
+      }
+    }
+  );
+})
+.delete((req, res) => {
+  User.deleteOne(
+    {
+      _id: req.params.userId,
+    },
+    (err) => {
+      if (!err) {
+        res.send("User deleted");
+      } else {
+        res.send(err);
+      }
+    }
+  );
 });
 
 //Requests targeting all notes
