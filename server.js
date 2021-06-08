@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const { v4 } = require("uuid");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
@@ -47,14 +48,16 @@ mongoose.connect("mongodb://localhost:27017/sipagDB", {
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
+  userId: String,
+});
+
+const notesSchema = new mongoose.Schema({
+  userId: String,
+  title: String,
+  content: String,
 });
 
 userSchema.plugin(passportLocalMongoose);
-
-const notesSchema = new mongoose.Schema({
-  user: userSchema,
-  notes: { title: String, content: String },
-});
 
 const User = new mongoose.model("User", userSchema);
 const Note = new mongoose.model("Note", notesSchema);
@@ -78,39 +81,46 @@ if (process.env.NODE_ENV !== "production") {
 app.post("/register", (req, res) => {
   const { username, password } = req.body;
 
-  User.register({ username: username }, password, (err, user) => {
-    if (!err) {
-      passport.authenticate("local")(req, res, (err) => {
-        if (!err) {
-          const userData = {
-            userId: req.user._id,
-            username: req.user.username,
-          };
-          res.status(201).json({
-            status: 201,
-            data: userData,
-            message: "Successfuly Registered",
-          });
-        } else {
-          log(err);
-          res.status(500).json({
-            status: 500,
-            data: null,
-            message: "Internal server error",
-            error: err,
-          });
-        }
-      });
-    } else {
-      log(err);
-      res.status(400).json({
-        status: 400,
-        data: null,
-        message: "User already exists",
-        error: err,
-      });
+  User.register(
+    {
+      username: username,
+      userId: v4()
+    },
+    password,
+    (err, user) => {
+      if (!err) {
+        passport.authenticate("local")(req, res, (err) => {
+          if (!err) {
+            const userData = {
+              userId: req.user.userId,
+              username: req.user.username,
+            };
+            res.status(201).json({
+              status: 201,
+              data: userData,
+              message: "Successfuly Registered",
+            });
+          } else {
+            log(err);
+            res.status(500).json({
+              status: 500,
+              data: null,
+              message: "Internal server error",
+              error: err,
+            });
+          }
+        });
+      } else {
+        log(err);
+        res.status(400).json({
+          status: 400,
+          data: null,
+          message: "User already exists",
+          error: err,
+        });
+      }
     }
-  });
+  );
 });
 
 //Login route
@@ -123,16 +133,15 @@ app.post("/login", (req, res) => {
     (err, foundUser) => {
       if (!err) {
         if (foundUser) {
-          const user = new User({
-            username: username,
-            password: password,
-          });
+          console.log(foundUser)
+          const user = new User(foundUser);
           passport.authenticate("local")(req, res, async (err) => {
             if (!err) {
               await req.login(user, (err) => {
                 if (!err) {
+                  log(req.user)
                   const userData = {
-                    userId: req.user._id,
+                    userId: req.user.userId,
                     username: req.user.username,
                   };
                   res.status(200).json({
@@ -337,33 +346,42 @@ app
 app
   .route("/:userId/notes")
   .get((req, res) => {
-    Note.findOne(
-      {
-        _id: req.params.userId,
-      },
-      (err, foundNotes) => {
-        if (!err) {
-          if (foundNotes) {
-            res.send(foundNotes);
-          } else {
-            res.send("No such note");
-          }
+    const { userId } = req.params;
+    Note.find({ userId: userId }, (err, foundUser) => {
+      if (!err) {
+        if (foundUser) {
+          res.send(foundUser);
         } else {
-          log(err);
-          res.send("An error has occurred.");
+          res.send("No such notes");
         }
+      } else {
+        log(err);
+        res.send("An error has occurred.");
       }
-    );
+    });
   })
-  .post(async (req, res) => {
+  .post((req, res) => {
+    const { userId } = req.params;
     const note = new Note({
+      userId: userId,
       title: req.body.title,
       content: req.body.content,
     });
 
-    await note.save((err) => {
+    User.find({userId: userId}, async (err, foundUser) => {
       if (!err) {
-        res.send("Successfully added a new note");
+        if (foundUser) {
+          await note.save((err) => {
+            if (!err) {
+              res.send("Successfully added a new note");
+            } else {
+              log(err);
+              res.send("An error has occurred.");
+            }
+          });
+        } else {
+          res.send("No such user");
+        }
       } else {
         log(err);
         res.send("An error has occurred.");
