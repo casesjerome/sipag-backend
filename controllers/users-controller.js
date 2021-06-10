@@ -4,7 +4,7 @@ const { v4 } = require("uuid");
 
 //Models
 const HttpError = require("../models/http-error");
-const User = require("../models/users");
+const User = require("../models/user");
 
 const log = console.log;
 

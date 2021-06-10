@@ -47,10 +47,10 @@ app.use((req, res, next) => {
 //Routes
 app.use('/api/users', usersRouter);
 app.use('/api/notes', notesRouter);
-// if (process.env.NODE_ENV !== "production") {
-//   const devRouter = require("./routes/dev-routes");
-//   app.use(devRouter);
-// }
+if (process.env.NODE_ENV !== "production") {
+  const devRouter = require("./routes/dev-routes");
+  app.use(devRouter);
+}
 // app.use((error, req, res, next) => {
 //   if (res.headersSent) {
 //     return next(error);

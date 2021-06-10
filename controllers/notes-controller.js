@@ -1,6 +1,7 @@
 //Models
 const HttpError = require("../models/http-error");
-const Notes = require("../models/notes");
+const Note = require("../models/note");
+const User = require("../models/user");
 
 const createNote = async (req, res) => {
     const note = new Note({
