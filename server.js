@@ -45,20 +45,17 @@ app.use((req, res, next) => {
 });
 
 //Routes
-app.use('/api/users', usersRouter);
-app.use('/api/notes', notesRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/notes", notesRouter);
 if (process.env.NODE_ENV !== "production") {
   const devRouter = require("./routes/dev-routes");
   app.use(devRouter);
 }
-// app.use((error, req, res, next) => {
-//   if (res.headersSent) {
-//     return next(error);
-//   }
-//   res
-//     .status(error.code || 500)
-//     .json({ message: error.message || "Internal server error" });
-// });
+app.use((req, res, next) => {
+  res.status(404).json({
+    message: "Route not found",
+  });
+});
 
 //Database
 mongoose.connect("mongodb://localhost:27017/sipagDB", {

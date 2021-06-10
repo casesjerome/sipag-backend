@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const notesSchema = new mongoose.Schema({
   userId: String,
+  noteId: String,
   title: String,
   content: String,
 });

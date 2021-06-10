@@ -21,7 +21,7 @@ NotesRouter
 
 //Requests targeting a specific note
 NotesRouter
-  .route("/specific/:noteKey")
+  .route("/specific/:noteId")
   .get(notesController.getNote)
   .put(notesController.putNote)
   .patch(notesController.patchNote)
