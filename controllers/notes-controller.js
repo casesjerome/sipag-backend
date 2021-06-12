@@ -21,8 +21,8 @@ const createNote = async (req, res) => {
     }
   });
 };
-const getAllNotes = (req, res) => {
-  Note.find({}, (err, foundNotes) => {
+const getAllNotes = async (req, res) => {
+  await Note.find({}, (err, foundNotes) => {
     if (!err) {
       res.send(foundNotes);
     } else {
@@ -32,8 +32,8 @@ const getAllNotes = (req, res) => {
   });
 };
 
-const deleteAllNotes = (req, res) => {
-  Note.deleteMany({}, (err) => {
+const deleteAllNotes = async (req, res) => {
+  await Note.deleteMany({}, (err) => {
     if (!err) {
       res.send("Successfully deleted all notes.");
     } else {
@@ -43,9 +43,9 @@ const deleteAllNotes = (req, res) => {
   });
 };
 
-const getAllUserNotes = (req, res) => {
+const getAllUserNotes = async (req, res) => {
   const { userId } = req.params;
-  Note.find({ userId: userId }, (err, foundUser) => {
+  await Note.find({ userId: userId }, (err, foundUser) => {
     if (!err) {
       if (foundUser) {
         res.send(foundUser);
@@ -59,7 +59,7 @@ const getAllUserNotes = (req, res) => {
   });
 };
 
-const createUserNote = (req, res) => {
+const createUserNote = async (req, res) => {
   const { userId } = req.params;
   const note = new Note({
     userId: userId,
@@ -68,7 +68,7 @@ const createUserNote = (req, res) => {
     content: req.body.content,
   });
 
-  User.find({ userId: userId }, async (err, foundUser) => {
+  await User.find({ userId: userId }, async (err, foundUser) => {
     if (!err) {
       if (foundUser) {
         await note.save((err) => {
@@ -89,8 +89,8 @@ const createUserNote = (req, res) => {
   });
 };
 
-const getNote = (req, res) => {
-  Note.findOne(
+const getNote = async (req, res) => {
+  await Note.findOne(
     {
       _id: req.params.noteKey,
     },
@@ -109,8 +109,8 @@ const getNote = (req, res) => {
   );
 };
 
-const putNote = (req, res) => {
-  Note.update(
+const putNote = async (req, res) => {
+  await Note.update(
     {
       _id: req.params.noteKey,
     },
@@ -132,8 +132,8 @@ const putNote = (req, res) => {
   );
 };
 
-const patchNote = (req, res) => {
-  Note.update(
+const patchNote = async (req, res) => {
+  await Note.update(
     {
       _id: req.params.noteKey,
     },
@@ -151,8 +151,8 @@ const patchNote = (req, res) => {
   );
 };
 
-const deleteNote = (req, res) => {
-  Note.deleteOne(
+const deleteNote = async (req, res) => {
+  await Note.deleteOne(
     {
       noteId: req.params.noteId,
     },

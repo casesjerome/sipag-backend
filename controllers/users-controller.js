@@ -61,7 +61,7 @@ const register = (req, res) => {
   );
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -72,7 +72,7 @@ const login = (req, res) => {
   }
   const { username, password } = req.body;
 
-  User.findOne(
+  await User.findOne(
     {
       username: username,
     },
@@ -132,9 +132,9 @@ const login = (req, res) => {
   );
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
   try {
-    req.logout();
+   await req.logout();
   } catch (error) {
     log(err);
    return res.status(500).json({
@@ -150,8 +150,8 @@ const logout = (req, res) => {
   });
 };
 
-const getAllUsers = (req, res) => {
-  User.find({}, (err, foundUsers) => {
+const getAllUsers = async (req, res) => {
+  await User.find({}, (err, foundUsers) => {
     if (!err) {
       res.send(foundUsers);
     } else {
@@ -161,8 +161,8 @@ const getAllUsers = (req, res) => {
   });
 };
 
-const deleteAllUsers = (req, res) => {
-  User.deleteMany({}, (err) => {
+const deleteAllUsers = async (req, res) => {
+  await User.deleteMany({}, (err) => {
     if (!err) {
       res.send("Successfully deleted all users");
     } else {
@@ -172,8 +172,8 @@ const deleteAllUsers = (req, res) => {
   });
 };
 
-const getSpecificUser = (req, res) => {
-  User.findOne(
+const getSpecificUser = async (req, res) => {
+  await User.findOne(
     {
       _id: req.params.userId,
     },
@@ -192,8 +192,8 @@ const getSpecificUser = (req, res) => {
   );
 };
 
-const putSpecificUser = (req, res) => {
-  User.update(
+const putSpecificUser = async (req, res) => {
+  await User.update(
     {
       _id: req.params.userId,
     },
@@ -215,8 +215,8 @@ const putSpecificUser = (req, res) => {
   );
 };
 
-const patchSpecificUser = (req, res) => {
-  User.update(
+const patchSpecificUser = async (req, res) => {
+  await User.update(
     {
       _id: req.params.userId,
     },
@@ -234,8 +234,8 @@ const patchSpecificUser = (req, res) => {
   );
 };
 
-const deleteSpecificUser = (req, res) => {
-  User.deleteOne(
+const deleteSpecificUser = async (req, res) => {
+  await User.deleteOne(
     {
       _id: req.params.userId,
     },
