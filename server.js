@@ -58,9 +58,14 @@ app.use((req, res, next) => {
 });
 
 //Database
-mongoose.connect("mongodb://localhost:27017/sipagDB", {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-});
-
-app.listen(PORT, () => log("Server started on PORT ", PORT));
+mongoose
+  .connect("mongodb://localhost:27017/sipagDB", {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useCreateIndex: true
+  })
+  .then(app.listen(PORT, () => log("Server started on PORT ", PORT)))
+  .catch((err) => {
+    log(err);
+    res.status(500).json({ message: "Internal Server error", error: err });
+  });

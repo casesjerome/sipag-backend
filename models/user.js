@@ -1,15 +1,17 @@
 //Packages
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 
 const userSchema = new mongoose.Schema({
-  username: String,
-  password: String,
+  username: {type: String, unique: true},
+  password: {type: String, minlength: 6},
   userId: String,
 });
 
+userSchema.plugin(uniqueValidator);
 userSchema.plugin(passportLocalMongoose);
 const User = new mongoose.model("User", userSchema);
 

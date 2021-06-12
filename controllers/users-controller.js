@@ -1,5 +1,6 @@
 //Packages
 const passport = require("passport");
+const { validationResult } = require("express-validator");
 const { v4 } = require("uuid");
 
 //Models
@@ -9,6 +10,14 @@ const User = require("../models/user");
 const log = console.log;
 
 const register = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      error: errors,
+    });
+  }
   const { username, password } = req.body;
 
   User.register(
@@ -36,7 +45,6 @@ const register = (req, res) => {
             res.status(500).json({
               status: 500,
               data: null,
-              message: "Internal server error",
               error: err,
             });
           }
@@ -46,7 +54,6 @@ const register = (req, res) => {
         res.status(400).json({
           status: 400,
           data: null,
-          message: "User already exists",
           error: err,
         });
       }
@@ -55,6 +62,14 @@ const register = (req, res) => {
 };
 
 const login = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      status: 400,
+      data: null,
+      error: errors,
+    });
+  }
   const { username, password } = req.body;
 
   User.findOne(
@@ -69,7 +84,7 @@ const login = (req, res) => {
           passport.authenticate("local")(req, res, async (err) => {
             if (!err) {
               await req.login(user, (err) => {
-                if (!err) {                  
+                if (!err) {
                   const userData = {
                     userId: req.user.userId,
                     username: req.user.username,
@@ -84,7 +99,6 @@ const login = (req, res) => {
                   res.status(401).json({
                     status: 401,
                     data: null,
-                    message: "Incorrect Password",
                     error: err,
                   });
                 }
@@ -94,7 +108,6 @@ const login = (req, res) => {
               res.status(400).json({
                 status: 400,
                 data: null,
-                message: "Bad Request",
                 error: err,
               });
             }
@@ -104,7 +117,6 @@ const login = (req, res) => {
           res.status(401).json({
             status: 401,
             data: null,
-            message: "Incorrect Username",
             error: err,
           });
         }
@@ -113,7 +125,6 @@ const login = (req, res) => {
         res.status(500).json({
           status: 500,
           data: null,
-          message: "Internal Server Error",
           error: err,
         });
       }
@@ -122,11 +133,20 @@ const login = (req, res) => {
 };
 
 const logout = (req, res) => {
-  req.logout();
+  try {
+    req.logout();
+  } catch (error) {
+    log(err);
+   return res.status(500).json({
+      status: 500,
+      data: null,
+      error: err,
+    });
+  }
   res.status(200).json({
     status: 200,
     data: userData,
-    message: "Successfuly Logout",
+    message: "Successfully Logout",
   });
 };
 
@@ -170,7 +190,7 @@ const getSpecificUser = (req, res) => {
       }
     }
   );
-}
+};
 
 const putSpecificUser = (req, res) => {
   User.update(
@@ -193,7 +213,7 @@ const putSpecificUser = (req, res) => {
       }
     }
   );
-}
+};
 
 const patchSpecificUser = (req, res) => {
   User.update(
@@ -212,7 +232,7 @@ const patchSpecificUser = (req, res) => {
       }
     }
   );
-}
+};
 
 const deleteSpecificUser = (req, res) => {
   User.deleteOne(
@@ -228,7 +248,7 @@ const deleteSpecificUser = (req, res) => {
       }
     }
   );
-}
+};
 
 exports.register = register;
 exports.login = login;

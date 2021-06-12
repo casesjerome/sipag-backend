@@ -1,5 +1,6 @@
 //Packages
 const express = require("express");
+const { check } = require("express-validator");
 
 const usersRouter = express.Router();
 
@@ -7,10 +8,25 @@ const usersRouter = express.Router();
 const usersController = require("../controllers/users-controller");
 
 //Register route
-usersRouter.post("/register", usersController.register);
+usersRouter.post(
+  "/register",
+  [
+    check("username").not().isEmpty(),
+    check("username").isEmail(),
+    check("password").isLength({ min: 6, max: 20 }),
+  ],
+  usersController.register
+);
 
 //Login route
-usersRouter.post("/login", usersController.login);
+usersRouter.post(
+  "/login",
+  [
+    check("username").not().isEmpty(),
+    check("username").isEmail(),    
+  ],
+  usersController.login
+);
 
 //Logout route
 usersRouter.get("/logout", usersController.logout);
