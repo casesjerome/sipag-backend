@@ -1,10 +1,14 @@
 //Packages
 const express = require("express");
+const checkAuth = require("../middleware/check-auth");
 
 const NotesRouter = express.Router();
 
 //Controller
 const notesController = require("../controllers/notes-controller");
+
+//Auth Middleware
+NotesRouter.use(checkAuth);
 
 //Requests targeting all notes
 NotesRouter

@@ -2,12 +2,15 @@
 const passport = require("passport");
 const { validationResult } = require("express-validator");
 const { v4 } = require("uuid");
+const jwt = require("jsonwebtoken");
+
+require("dotenv").config();
+
+const log = console.log;
 
 //Models
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
-
-const log = console.log;
 
 const register = (req, res) => {
   const errors = validationResult(req);
@@ -15,7 +18,7 @@ const register = (req, res) => {
     return res.status(400).json({
       status: 400,
       data: null,
-      error: errors,
+      error: "Invalid Username and/or Password",
     });
   }
   const { username, password } = req.body;
@@ -34,13 +37,28 @@ const register = (req, res) => {
               userId: req.user.userId,
               username: req.user.username,
             };
+
+            let token;
+            try {
+              token = jwt.sign(userData, process.env.JWT_SECRET_KEY, {
+                expiresIn: "24h",
+              }); 
+            } catch (error) {
+              log(err);
+              return res.status(500).json({
+                status: 500,
+                data: null,
+                error: "Signing up failed, please try again later",
+              });
+            }
+
             res.status(201).json({
               status: 201,
               data: userData,
+              tkn: token,
               message: "Successfuly Registered",
             });
-          } else {
-            // throw new HttpError("Internal server error", 500, err);
+          } else {            
             log(err);
             res.status(500).json({
               status: 500,
@@ -67,7 +85,7 @@ const login = async (req, res) => {
     return res.status(400).json({
       status: 400,
       data: null,
-      error: errors,
+      error: "Invalid Username and/or Password",
     });
   }
   const { username, password } = req.body;
@@ -89,9 +107,24 @@ const login = async (req, res) => {
                     userId: req.user.userId,
                     username: req.user.username,
                   };
+
+                  try {
+                    token = jwt.sign(userData, process.env.JWT_SECRET_KEY, {
+                      expiresIn: "24h",
+                    }); 
+                  } catch (error) {
+                    log(err);
+                    return res.status(500).json({
+                      status: 500,
+                      data: null,
+                      error: "Logging in failed, please try again later",
+                    });
+                  }
+
                   res.status(200).json({
                     status: 200,
                     data: userData,
+                    tkn: token,
                     message: "Successfuly Logged In",
                   });
                 } else {
@@ -134,10 +167,10 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-   await req.logout();
+    await req.logout();
   } catch (error) {
     log(err);
-   return res.status(500).json({
+    return res.status(500).json({
       status: 500,
       data: null,
       error: err,
