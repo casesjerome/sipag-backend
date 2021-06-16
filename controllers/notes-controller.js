@@ -68,6 +68,14 @@ const createUserNote = async (req, res) => {
     content: req.body.content,
   });
 
+  if (userId !== req.userData.userId) {
+    return res.status(401).json({
+      status: 401,
+      data: null,
+      error: "Unauthorized",
+    });
+  }
+
   await User.find({ userId: userId }, async (err, foundUser) => {
     if (!err) {
       if (foundUser) {
@@ -152,9 +160,19 @@ const patchNote = async (req, res) => {
 };
 
 const deleteNote = async (req, res) => {
+  const { userId, noteId } = req.params;
+
+  if (userId !== req.userData.userId) {
+    return res.status(401).json({
+      status: 401,
+      data: null,
+      error: "Unauthorized",
+    });
+  }
+  
   await Note.deleteOne(
     {
-      noteId: req.params.noteId,
+      noteId: noteId,
     },
     (err) => {
       if (!err) {

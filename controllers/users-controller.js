@@ -96,8 +96,7 @@ const login = async (req, res) => {
     },
     (err, foundUser) => {
       if (!err) {
-        if (foundUser) {
-          console.log(foundUser);
+        if (foundUser) {       
           const user = new User(foundUser);
           passport.authenticate("local")(req, res, async (err) => {
             if (!err) {
